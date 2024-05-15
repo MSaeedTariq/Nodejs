@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Amazing Adventure",
+    "price": 1500,
+    "difficulty": "Hard",
+    "ratingsAverage": 4.8,
+    "ratingsQuantity": 30,
+    "priceDiscount": 100,
+    "summery": "Experience the thrill of a lifetime with our Amazing Adventure tour.",
+    "description": "This tour takes you on an adrenaline-filled journey through breathtaking landscapes and challenging terrains.",
+    "imageCover": "amazing_adventure_cover.jpg",
+    "images": ["image1.jpg", "image2.jpg", "image3.jpg"],
+    "startDates": "2024-06-01"
+  },
+  {
+    "name": "Jungle Trekking Expedition",
+    "price": 1200,
+    "difficulty": "Moderate",
+    "ratingsAverage": 4.5,
+    "ratingsQuantity": 25,
+    "priceDiscount": 80,
+    "summery": "Embark on an unforgettable journey through dense jungles and discover hidden wonders.",
+    "description": "This expedition offers a blend of adventure and exploration as you traverse through diverse ecosystems.",
+    "imageCover": "jungle_trek_cover.jpg",
+    "images": ["image1.jpg", "image2.jpg", "image3.jpg"],
+    "startDates": "2024-07-15"
+  },
+  {
+    "name": "Mountain Summit Challenge",
+    "price": 1800,
+    "difficulty": "Extreme",
+    "ratingsAverage": 4.9,
+    "ratingsQuantity": 40,
+    "priceDiscount": 120,
+    "summery": "Conquer towering peaks and experience the thrill of reaching new heights.",
+    "description": "This challenge pushes your limits as you ascend steep slopes and navigate rugged terrain.",
+    "imageCover": "mountain_summit_cover.jpg",
+    "images": ["image1.jpg", "image2.jpg", "image3.jpg"],
+    "startDates": "2024-08-10"
+  },
+  {
+    "name": "Coastal Exploration Tour",
+    "price": 1000,
+    "difficulty": "Easy",
+    "ratingsAverage": 4.7,
+    "ratingsQuantity": 35,
+    "priceDiscount": 60,
+    "summery": "Discover the beauty of coastal landscapes and pristine beaches on this relaxing tour.",
+    "description": "This tour offers a serene escape as you stroll along sandy shores and explore charming coastal towns.",
+    "imageCover": "coastal_exploration_cover.jpg",
+    "images": ["image1.jpg", "image2.jpg", "image3.jpg"],
+    "startDates": "2024-09-05"
+  }
+]
