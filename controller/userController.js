@@ -1,11 +1,15 @@
-exports.getAllUsers = (request, respone) => {
+const User = require('./../models/userModel');
+const exceptionHandler = require('./../exception/handler');
+
+exports.getAllUsers = exceptionHandler.catchAsync( async (request, respone) => {
+  const userData = await User.find();
     respone.status(200).json({
       status: 'success',
       data: {
-        message: 'Working',
+        user: userData,
       },
     });
-  };
+  });
   
   exports.getSingleUser = (request, response) => {
     
@@ -34,5 +38,5 @@ exports.getAllUsers = (request, respone) => {
   };
   
   exports.createUser = (request, response) => {
-   
+  
   };

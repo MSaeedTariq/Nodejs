@@ -1,5 +1,12 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+
+process.on('uncaughtException', (error) => {
+  console.log('Error Name : ', error.name);
+  console.log('Error Message : ', error.message);
+  process.exit(1);
+});
+
 dotenv.config({ path: './config.env' });
 
 const app = require('./app.js');
@@ -20,6 +27,16 @@ mongoose
   });
 
 const port = process.env.PORT || 8000;
-app.listen(port, '127.0.0.1', () => {
+const server = app.listen(port, '127.0.0.1', () => {
   console.log('Server Started On Port 8000');
 });
+
+process.on('unhandledRejection', (error) => {
+  console.log('Error Name : ', error.name);
+  console.log('Error Message : ', error.message);
+  server.close(() => {
+    process.exit(1);
+  });
+});
+
+
