@@ -1,6 +1,8 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
+const { type } = require('os');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -19,8 +21,8 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user' , 'guide' , 'lead-guide' , 'admin'],
-    default: 'user'
+    enum: ['user', 'guide', 'lead-guide', 'admin'],
+    default: 'user',
   },
   password: {
     type: String,
@@ -42,6 +44,12 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: {
     type: Date,
   },
+  passwordResetToken: {
+    type: String,
+  },
+  passwordResetExpires: {
+    type: Date,
+  },
 });
 
 userSchema.pre('save', async function (next) {
@@ -51,6 +59,14 @@ userSchema.pre('save', async function (next) {
   this.passwordConfirm = undefined;
   next();
 });
+
+userSchema.pre('save' , function(){
+  if(!this.isModified('password') || this.isNew){
+    return next();
+  }
+  this.passwordChangedAt = Date.now() - 1000; // Subtracting One Second or 1000 MilliSecind because somethime the paswordChangedAt happends later on and causes confusion
+  next();
+})
 
 userSchema.methods.correctPassword = async function (inputPassword, dbPassword) {
   // we cannot use 'this' here because we have set password select to false
@@ -65,6 +81,13 @@ userSchema.methods.changedPasswordAfter = function (TokenTimestamp) {
   }
   // False means password not changed
   return false;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  this.passwordResetExpires = Date.now() + 10 * 60 * 100;
+  return resetToken;
 };
 
 const User = mongoose.model('User', userSchema);

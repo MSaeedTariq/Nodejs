@@ -1,8 +1,10 @@
+const crypto = require('crypto');
 const util = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
 const exceptionHandler = require('./../exception/handler');
 const AppError = require('./../utils/appError');
+const sendEmail = require('./../utils/email');
 
 const signedToken = (userID) => {
   return jwt.sign({ id: userID }, process.env.JWT_SECRET, {
@@ -90,3 +92,64 @@ exports.allowedAccessTo = (...roles) => {
     next();
   };
 };
+
+exports.forgotPassword = exceptionHandler.catchAsync(async (request, response, next) => {
+  const user = await User.findOne({ email: request.body.email });
+  if (!user) {
+    return next(new AppError('Invalid Email Entered. No User Found', 404));
+  }
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false }); // Saving the user in the db // making all validators false
+
+  const resetURL = `${request.protocol}://${request.get('host')}/api/v1/users/reset-password/${resetToken}`;
+  const message = `Forgot Your Password? Submit the Patch Request with you new password and passwordConfirm to :${resetURL}.\nIF you didin't forgot your passwrod then ignore this message`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Your Password Reset Token (Valid for 10 Mins)',
+      message,
+    });
+
+    response.status(200).json({
+      status: 'Success',
+      message: 'Token Sent To Email',
+    });
+  } catch (error) {
+    console.log(error);
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false }); // Saving the user in the db // making all validators false
+    return next(new AppError('Error Sending The Email, Try Again', 500));
+  }
+});
+
+exports.resetPassword = exceptionHandler.catchAsync(async (request, response, next) => {
+  const hasedToken = crypto.createHash('sha256').update(request.params.token).digest('hex');
+
+  const user = await User.findOne({
+    passwordResetToken: hasedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(new AppError('Invalid Token Or Has Expired', 400));
+  }
+
+  user.password = request.body.password;
+  user.passwordConfirm = request.body.passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  const token = signedToken(user._id);
+  response.status(200).json({
+    status: 'Success',
+    token,
+  });
+});
+
+exports.updatePassword = exceptionHandler.catchAsync(async (request, response, next) => {
+  const user = await User.findById(request.params.id);
+  
+});
