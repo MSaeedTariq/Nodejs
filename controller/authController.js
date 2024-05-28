@@ -5,10 +5,22 @@ const User = require('./../models/userModel');
 const exceptionHandler = require('./../exception/handler');
 const AppError = require('./../utils/appError');
 const sendEmail = require('./../utils/email');
+const { response } = require('express');
 
 const signedToken = (userID) => {
   return jwt.sign({ id: userID }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPERATION_TIME,
+  });
+};
+
+const createSendToken = (user, statusCode, response) => {
+  const token = signedToken(user._id);
+  response.status(statusCode).json({
+    status: 'Success',
+    token,
+    data: {
+      user: user,
+    },
   });
 };
 
@@ -23,14 +35,7 @@ exports.signUp = exceptionHandler.catchAsync(async (request, response, next) => 
     passwordChangedAt: request.body.passwordChangedAt,
     role: request.body.role,
   });
-  const token = signedToken(userData._id);
-  response.status(201).json({
-    status: 'Success',
-    token,
-    data: {
-      user: userData,
-    },
-  });
+  createSendToken(userData, 201, response);
 });
 
 exports.login = exceptionHandler.catchAsync(async (request, response, next) => {
@@ -47,13 +52,7 @@ exports.login = exceptionHandler.catchAsync(async (request, response, next) => {
     return next(new AppError('Incorrect Email Or Password'), 401);
   }
   const token = signedToken(userData._id);
-  response.status(201).json({
-    status: 'Success',
-    token,
-    data: {
-      user: userData,
-    },
-  });
+  createSendToken(userData, 200, response);
 });
 
 exports.authUser = exceptionHandler.catchAsync(async (request, response, next) => {
@@ -142,14 +141,19 @@ exports.resetPassword = exceptionHandler.catchAsync(async (request, response, ne
   user.passwordResetExpires = undefined;
   await user.save();
 
-  const token = signedToken(user._id);
-  response.status(200).json({
-    status: 'Success',
-    token,
-  });
+  createSendToken(user, 200, response);
 });
 
 exports.updatePassword = exceptionHandler.catchAsync(async (request, response, next) => {
-  const user = await User.findById(request.params.id);
-  
+  const user = await User.findById(request.user.id).select('+password');
+  const valid_password = await user.correctPassword(request.body.passwordCurrent, user.password);
+  if (!valid_password) {
+    return next(new AppError('Ivalid Password Entered', 401));
+  }
+
+  user.password = request.body.password;
+  user.passwordConfirm = request.body.passwordConfirm;
+  await user.save();
+
+  createSendToken(user, 200, response);
 });

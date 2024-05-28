@@ -50,6 +50,11 @@ const userSchema = new mongoose.Schema({
   passwordResetExpires: {
     type: Date,
   },
+  accountActive: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
 userSchema.pre('save', async function (next) {
@@ -60,13 +65,18 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-userSchema.pre('save' , function(){
-  if(!this.isModified('password') || this.isNew){
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password') || this.isNew) {
     return next();
   }
   this.passwordChangedAt = Date.now() - 1000; // Subtracting One Second or 1000 MilliSecind because somethime the paswordChangedAt happends later on and causes confusion
   next();
-})
+});
+
+userSchema.pre(/^find/, function (next) {
+  this.find({accountActive : {$ne : false}});
+  next();
+});
 
 userSchema.methods.correctPassword = async function (inputPassword, dbPassword) {
   // we cannot use 'this' here because we have set password select to false
